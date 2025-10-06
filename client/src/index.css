@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Campus Connect Design System - Academic themed with vibrant colors */
+
+@layer base {
+  :root {
+    --background: 245 50% 98%;
+    --foreground: 224 71% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+
+    /* Academic blue as primary */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    
+    /* Soft academic secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8% 46%;
+
+    /* Academic purple accent */
+    --accent: 262 83% 70%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
+
+    /* Campus Connect specific tokens */
+    --campus-primary: 217 91% 60%;
+    --campus-secondary: 262 83% 70%;
+    --campus-success: 142 76% 36%;
+    --campus-warning: 38 92% 50%;
+    --campus-info: 199 89% 48%;
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 70%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 96%));
+    --gradient-accent: linear-gradient(90deg, hsl(262 83% 70%), hsl(217 91% 60%));
+    
+    /* Shadows */
+    --shadow-campus: 0 4px 12px hsl(217 91% 60% / 0.15);
+    --shadow-card: 0 2px 8px hsl(220 13% 91% / 0.8);
+    --shadow-hover: 0 8px 25px hsl(217 91% 60% / 0.25);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 10% 65%;
+
+    --accent: 262 83% 70%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 217 91% 60%;
+    
+    /* Dark mode campus tokens */
+    --campus-primary: 217 91% 60%;
+    --campus-secondary: 262 83% 70%;
+    --campus-success: 142 76% 36%;
+    --campus-warning: 38 92% 50%;
+    --campus-info: 199 89% 48%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 70%));
+    --gradient-card: linear-gradient(145deg, hsl(215 28% 17%), hsl(224 71% 4%));
+    --gradient-accent: linear-gradient(90deg, hsl(262 83% 70%), hsl(217 91% 60%));
+    
+    --shadow-campus: 0 4px 12px hsl(217 91% 60% / 0.3);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.5);
+    --shadow-hover: 0 8px 25px hsl(217 91% 60% / 0.4);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent));
+  }
+}
+
+@layer components {
+  /* Campus Connect specific components */
+  .hero-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .campus-card {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+  
+  .campus-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+  
+  .campus-button {
+    background: var(--gradient-accent);
+    box-shadow: var(--shadow-campus);
+    transition: var(--transition-bounce);
+  }
+  
+  .campus-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .progress-bar {
+    background: var(--gradient-accent);
+    transition: width 0.5s ease-in-out;
+  }
+  
+  .reaction-button {
+    transition: var(--transition-smooth);
+  }
+  
+  .reaction-button:hover {
+    transform: scale(1.1);
+  }
+}
