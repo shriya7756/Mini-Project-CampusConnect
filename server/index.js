@@ -9,6 +9,7 @@ dotenv.config();
  const qaRoutes = require("./routes/qaRoutes");
  const exchangeRoutes = require("./routes/exchangeRoutes");
  const progressRoutes = require("./routes/progressRoutes");
+ const userRoutes = require("./routes/userRoutes");
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,6 +28,7 @@ async function start() {
    app.use("/api/qa", qaRoutes);
    app.use("/api/exchange", exchangeRoutes);
    app.use("/api/progress", progressRoutes);
+   app.use("/api/users", userRoutes);
 
   app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);

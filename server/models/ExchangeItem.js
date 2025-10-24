@@ -10,13 +10,13 @@ const exchangeItemSchema = new mongoose.Schema(
 		tags: [{ type: String }],
 		images: [{ type: String }],
 		contact: {
-			phone: String,
-			email: String,
-			location: String,
+			phone: { type: String },
+			location: { type: String },
 		},
 		seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 		views: { type: Number, default: 0 },
 		interestedUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		likedUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	},
 	{ timestamps: true }
 );

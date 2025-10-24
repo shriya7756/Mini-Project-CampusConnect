@@ -30,6 +30,8 @@ import {
   User,
   ArrowUp,
   Reply,
+  Trash2,
+  HelpCircle,
 } from "lucide-react";
 
 // Removed static mocks; render only DB data
@@ -44,6 +46,7 @@ export default function QA() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [askForm, setAskForm] = useState({ title: "", description: "", tags: "", subject: "" });
   const { toast } = useToast();
+  const [viewed, setViewed] = useState<Record<string, boolean>>({});
 
   const getAuthorName = (author: any) => typeof author === 'string' ? author : (author?.name || 'Unknown');
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
@@ -75,20 +78,83 @@ export default function QA() {
     }
   };
 
-  const handleUpvote = (questionId: number, answerId?: number) => {
-    toast({
-      title: "Upvote recorded!",
-      description: "Thank you for your feedback.",
-    });
+  const handleUpvote = async (questionId: any, answerId?: any) => {
+    try {
+      let res;
+      if (answerId) {
+        res = await apiPost(`/api/qa/questions/${questionId}/answers/${answerId}/upvote`, {});
+        toast({ 
+          title: res.toggled ? '👍 Answer upvoted!' : '↩️ Upvote removed',
+          description: res.toggled ? 'You upvoted this answer' : 'Upvote removed from answer'
+        });
+      } else {
+        res = await apiPost(`/api/qa/questions/${questionId}/upvote`, {});
+        toast({ 
+          title: res.toggled ? '❓ Question upvoted!' : '↩️ Upvote removed',
+          description: res.toggled ? 'You upvoted this question' : 'Upvote removed from question'
+        });
+      }
+      setQuestions((prev) => prev.map((q: any) => ((q._id || q.id) === questionId ? res.question : q)));
+    } catch (e: any) {
+      toast({ title: 'Action failed', description: e.message || 'Try again', variant: 'destructive' });
+    }
   };
 
-  const toggleQuestion = (questionId: any) => {
-    setExpandedQuestion(expandedQuestion === questionId ? null : questionId);
+  const toggleQuestion = async (questionId: any) => {
+    const next = expandedQuestion === questionId ? null : questionId;
+    setExpandedQuestion(next);
+    if (next && !viewed[String(questionId)]) {
+      try {
+        const res = await apiPost(`/api/qa/questions/${questionId}/view`, {});
+        setQuestions((prev) => prev.map((q: any) => ((q._id || q.id) === questionId ? res.question : q)));
+        setViewed((v) => ({ ...v, [String(questionId)]: true }));
+      } catch {}
+    }
+  };
+
+  const handleDeleteAnswer = async (questionId: any, answerId: string) => {
+    try {
+      const res = await apiPost(`/api/qa/questions/${questionId}/answers/${answerId}/delete`, {});
+      setQuestions((prev) => prev.map((q: any) => ((q._id || q.id) === questionId ? res.question : q)));
+      toast({ title: '🗑️ Answer deleted', description: 'Answer has been removed' });
+    } catch (e: any) {
+      toast({ title: 'Delete failed', description: e.message || 'Try again', variant: 'destructive' });
+    }
+  };
+
+  const getCurrentUserId = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user.id;
+    } catch {
+      return null;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated={true} />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-16 right-16 w-28 h-28 bg-orange-500/10 rounded-full blur-xl float-animation"></div>
+        <div className="absolute top-1/3 left-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '3s'}}></div>
+        <div className="absolute bottom-24 right-1/4 w-32 h-32 bg-red-500/10 rounded-full blur-xl float-animation" style={{animationDelay: '5s'}}></div>
+        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-indigo-500/10 rounded-full blur-lg float-animation" style={{animationDelay: '7s'}}></div>
+        <div className="absolute bottom-16 left-1/3 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '9s'}}></div>
+        
+        {/* Floating Question Mark Icons */}
+        <div className="absolute top-24 left-1/4 text-orange-500/20 float-animation">
+          <MessageSquare className="w-7 h-7" />
+        </div>
+        <div className="absolute bottom-1/4 right-20 text-cyan-500/20 float-animation" style={{animationDelay: '4s'}}>
+          <HelpCircle className="w-6 h-6" />
+        </div>
+        <div className="absolute top-2/3 left-16 text-red-500/20 float-animation" style={{animationDelay: '6s'}}>
+          <MessageSquare className="w-8 h-8" />
+        </div>
+      </div>
+      
+      <div className="relative z-10">
+        <Navbar isAuthenticated={true} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -262,31 +328,47 @@ export default function QA() {
                 {expandedQuestion === qid && (
                   <div className="mt-6 pt-6 border-t space-y-4">
                     <h4 className="font-semibold text-lg">Answers</h4>
-                    {(question.answers || []).map((answer: any, aidx: number) => (
-                      <div key={answer._id || `${qid}-ans-${aidx}`} className={`p-4 rounded-lg border ${answer.isAccepted ? 'border-green-200 bg-green-50/50' : 'border-border'}`}>
-                        {answer.isAccepted && (
-                          <div className="flex items-center space-x-2 text-green-600 mb-2">
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="text-sm font-medium">Accepted Answer</span>
+                    {(question.answers || []).map((answer: any, aidx: number) => {
+                      const currentUserId = getCurrentUserId();
+                      const isOwner = String(answer.author._id || answer.author) === String(currentUserId);
+                      return (
+                        <div key={answer._id || `${qid}-ans-${aidx}`} className={`p-4 rounded-lg border ${answer.isAccepted ? 'border-green-200 bg-green-50/50' : 'border-border'}`}>
+                          {answer.isAccepted && (
+                            <div className="flex items-center space-x-2 text-green-600 mb-2">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="text-sm font-medium">Accepted Answer</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-start mb-3">
+                            <p className="flex-1 select-text">{answer.content}</p>
+                            {isOwner && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteAnswer(qid, answer._id)}
+                                className="ml-2 h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
-                        )}
-                        <p className="mb-3">{answer.content}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <button 
-                            className="flex items-center space-x-1 text-muted-foreground hover:text-primary reaction-button"
-                            onClick={() => handleUpvote(qid, answer._id)}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                            <span>{answer.upvotes || 0}</span>
-                          </button>
-                          <div className="flex items-center space-x-2 text-muted-foreground">
-                            <span>{getAuthorName(answer.author)}</span>
-                            <span>•</span>
-                            <span>{new Date(answer.createdAt || question.createdAt).toLocaleString()}</span>
+                          <div className="flex items-center justify-between text-sm">
+                            <button 
+                              className="flex items-center space-x-1 text-muted-foreground hover:text-primary reaction-button"
+                              onClick={() => handleUpvote(qid, answer._id)}
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                              <span>{answer.upvotes || 0}</span>
+                            </button>
+                            <div className="flex items-center space-x-2 text-muted-foreground">
+                              <span>{getAuthorName(answer.author)}</span>
+                              <span>•</span>
+                              <span>{new Date(answer.createdAt || question.createdAt).toLocaleString()}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div className="pt-4">
                       <Textarea placeholder="Write your answer..." className="mb-2" id={`answer-${qid}`} />
                       <Button size="sm" className="campus-button text-white" onClick={async () => {
@@ -325,6 +407,7 @@ export default function QA() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

@@ -13,6 +13,9 @@ import QA from "./pages/QA";
 import Exchange from "./pages/Exchange";
 import Progress from "./pages/Progress";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Feedback from "./pages/Feedback";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/qa" element={<QA />} />
             <Route path="/exchange" element={<Exchange />} />
             <Route path="/progress" element={<Progress />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/feedback" element={<Feedback />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

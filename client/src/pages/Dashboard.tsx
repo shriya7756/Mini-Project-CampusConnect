@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Footer } from "@/components/Footer";
 
 const quickStats = [
   { label: "Notes Shared", value: "12", icon: FileText, color: "bg-blue-500" },
@@ -87,14 +89,30 @@ const quickActions = [
 ];
 
 export default function Dashboard() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      setUser(userData);
+    } catch {
+      setUser({ name: 'Student' });
+    }
+  }, []);
+
+  const getUserFirstName = () => {
+    if (!user?.name) return 'Student';
+    return user.name.split(' ')[0];
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background particle-bg">
       <Navbar isAuthenticated={true} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, Alex! 👋</h1>
+        <div className="mb-8 slide-in-bottom">
+          <h1 className="text-4xl font-bold mb-2 select-text">Welcome back, {getUserFirstName()}! 👋</h1>
           <p className="text-muted-foreground text-lg">
             Here's what's happening in your Campus Connect community today.
           </p>
@@ -247,6 +265,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
+      <Footer />
     </div>
   );
 }

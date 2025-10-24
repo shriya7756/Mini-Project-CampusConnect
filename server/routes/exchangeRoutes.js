@@ -1,5 +1,5 @@
 const express = require('express');
-const { listItems, createItem, markInterest } = require('../controllers/exchangeController');
+const { listItems, createItem, markInterest, addView, toggleLike } = require('../controllers/exchangeController');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -10,6 +10,8 @@ const router = express.Router();
 router.get('/', listItems);
 router.post('/', auth, createItem);
 router.post('/:id/interest', auth, markInterest);
+router.post('/:id/like', auth, toggleLike);
+router.post('/:id/view', addView);
 
 router.post('/upload', auth, upload.single('image'), async (req, res) => {
 	try {

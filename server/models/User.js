@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
 		passwordHash: { type: String, required: true },
 		year: { type: String },
 		major: { type: String },
+		resetPasswordToken: { type: String },
+		resetPasswordExpiry: { type: Date },
 	},
 	{ timestamps: true }
 );

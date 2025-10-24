@@ -12,8 +12,29 @@ async function listItems(req, res) {
 	}
 	if (category && category !== 'All Categories') filter.category = category;
 	if (condition && condition !== 'All Conditions') filter.condition = condition;
-	const items = await ExchangeItem.find(filter).populate('seller', 'name email');
-	return res.json({ items });
+	const items = await ExchangeItem.find(filter).populate('seller', 'name email').lean();
+    const mapped = items.map((it) => ({
+        ...it,
+        interested: Array.isArray(it.interestedUserIds) ? it.interestedUserIds.length : 0,
+        likes: Array.isArray(it.likedUserIds) ? it.likedUserIds.length : 0,
+    }));
+    return res.json({ items: mapped });
+}
+
+async function toggleLike(req, res) {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const item = await ExchangeItem.findById(id);
+    if (!item) return res.status(404).json({ message: 'Not found' });
+    const already = item.likedUserIds.find((u) => String(u) === String(userId));
+    if (already) {
+        item.likedUserIds = item.likedUserIds.filter((u) => String(u) !== String(userId));
+    } else {
+        item.likedUserIds.push(userId);
+    }
+    await item.save();
+    const populated = await ExchangeItem.findById(id).populate('seller', 'name email').lean();
+    return res.json({ item: { ...populated.toObject?.() || populated, interested: populated.interestedUserIds?.length || 0, likes: populated.likedUserIds?.length || 0 } });
 }
 
 async function createItem(req, res) {
@@ -36,16 +57,39 @@ async function createItem(req, res) {
 }
 
 async function markInterest(req, res) {
-	const { id } = req.params;
-	const userId = req.user.userId;
-	const item = await ExchangeItem.findById(id);
-	if (!item) return res.status(404).json({ message: 'Not found' });
-	if (!item.interestedUserIds.find((u) => String(u) === String(userId))) {
-		item.interestedUserIds.push(userId);
-		await item.save();
-	}
-	return res.json({ item });
+  const { id } = req.params;
+  const userId = req.user.userId;
+  const item = await ExchangeItem.findById(id);
+  if (!item) return res.status(404).json({ message: 'Not found' });
+  const already = item.interestedUserIds.find((u) => String(u) === String(userId));
+  if (already) {
+    item.interestedUserIds = item.interestedUserIds.filter((u) => String(u) !== String(userId));
+  } else {
+    item.interestedUserIds.push(userId);
+  }
+  await item.save();
+  const populated = await ExchangeItem.findById(id).populate('seller', 'name email').lean();
+  return res.json({ 
+    item: { ...populated.toObject?.() || populated, interested: populated.interestedUserIds?.length || 0 }, 
+    toggled: !already 
+  });
 }
 
-module.exports = { listItems, createItem, markInterest };
+async function addView(req, res) {
+	const { id } = req.params;
+	const userId = req.headers['x-user-id'] || req.user?.userId;
+	const item = await ExchangeItem.findById(id);
+	if (!item) return res.status(404).json({ message: 'Not found' });
+	
+	// Only increment view if user hasn't viewed before
+	if (!item.viewedUserIds?.includes(userId)) {
+		item.viewedUserIds = [...(item.viewedUserIds || []), userId];
+		item.views = (item.views || 0) + 1;
+		await item.save();
+	}
+	
+	const populated = await ExchangeItem.findById(id).populate('seller', 'name email').lean();
+	return res.json({ item: { ...populated, interested: populated.interestedUserIds?.length || 0 } });
+}
 
+module.exports = { listItems, createItem, markInterest, addView, toggleLike };

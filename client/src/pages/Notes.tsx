@@ -20,17 +20,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BookOpen,
-  Upload,
+  Plus,
   Search,
+  Filter,
+  Upload,
+  Download,
   ThumbsUp,
   MessageCircle,
   Heart,
-  Download,
-  Filter,
-  Plus,
   Star,
+  Eye,
   Calendar,
   User,
+  Tag,
+  Trash2,
 } from "lucide-react";
 
 // Removed static mocks; render only DB data
@@ -49,6 +52,18 @@ export default function Notes() {
 
   const getAuthorName = (author: any) => typeof author === 'string' ? author : (author?.name || 'Unknown');
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
+  const getCurrentUserId = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user.id;
+    } catch {
+      return null;
+    }
+  };
+
+  const isUserReacted = (userIds: any[], userId: string) => {
+    return Array.isArray(userIds) && userIds.some(id => String(id) === String(userId));
+  };
 
   useEffect(() => {
     apiGet("/api/notes")
@@ -78,16 +93,91 @@ export default function Notes() {
     }
   };
 
-  const handleReaction = (noteId: number, reactionType: string) => {
-    toast({
-      title: `${reactionType} added!`,
-      description: "Your reaction has been recorded.",
-    });
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [showComments, setShowComments] = useState<Record<string, boolean>>({});
+
+  const handleReaction = async (noteId: string, reactionType: 'Upvote' | 'Like' | 'Star') => {
+    try {
+      let res;
+      if (reactionType === 'Upvote') {
+        res = await apiPost(`/api/notes/${noteId}/upvote`, {});
+        toast({ 
+          title: res.toggled ? '👍 Upvoted!' : '↩️ Upvote removed',
+          description: res.toggled ? 'You upvoted this note' : 'Upvote removed'
+        });
+      } else if (reactionType === 'Like') {
+        res = await apiPost(`/api/notes/${noteId}/like`, {});
+        toast({ 
+          title: res.toggled ? '❤️ Liked!' : '💔 Like removed',
+          description: res.toggled ? 'You liked this note' : 'Like removed'
+        });
+      } else if (reactionType === 'Star') {
+        res = await apiPost(`/api/notes/${noteId}/star`, {});
+        toast({ 
+          title: res.toggled ? '⭐ Starred!' : '☆ Star removed',
+          description: res.toggled ? 'Added to your starred notes' : 'Removed from starred notes'
+        });
+      }
+      setNotes((prev) => prev.map((n) => ((n._id || n.id) === noteId ? res.note : n)));
+    } catch (e: any) {
+      toast({ title: 'Action failed', description: e.message || 'Try again', variant: 'destructive' });
+    }
+  };
+
+  const handleComment = async (noteId: string) => {
+    const content = commentInputs[noteId]?.trim();
+    if (!content) {
+      toast({ title: 'Please write a comment', variant: 'destructive' });
+      return;
+    }
+    try {
+      const res = await apiPost(`/api/notes/${noteId}/comments`, { content });
+      setNotes((prev) => prev.map((n) => ((n._id || n.id) === noteId ? res.note : n)));
+      setCommentInputs(prev => ({ ...prev, [noteId]: '' }));
+      toast({ title: '💬 Comment added!', description: 'Your comment has been posted' });
+    } catch (e: any) {
+      toast({ title: 'Comment failed', description: e.message || 'Try again', variant: 'destructive' });
+    }
+  };
+
+  const toggleComments = (noteId: string) => {
+    setShowComments(prev => ({ ...prev, [noteId]: !prev[noteId] }));
+  };
+
+  const handleDeleteComment = async (noteId: string, commentId: string) => {
+    try {
+      const res = await apiPost(`/api/notes/${noteId}/comments/${commentId}/delete`, {});
+      setNotes((prev) => prev.map((n: any) => ((n._id || n.id) === noteId ? res.note : n)));
+      toast({ title: '🗑️ Comment deleted', description: 'Comment has been removed' });
+    } catch (e: any) {
+      toast({ title: 'Delete failed', description: e.message || 'Try again', variant: 'destructive' });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated={true} />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl float-animation"></div>
+        <div className="absolute top-1/4 right-20 w-24 h-24 bg-purple-500/10 rounded-full blur-lg float-animation" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-green-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-1/2 right-10 w-28 h-28 bg-pink-500/10 rounded-full blur-xl float-animation" style={{animationDelay: '6s'}}></div>
+        <div className="absolute bottom-10 right-1/3 w-36 h-36 bg-yellow-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '8s'}}></div>
+        
+        {/* Floating Book Icons */}
+        <div className="absolute top-20 right-1/4 text-blue-500/20 float-animation">
+          <BookOpen className="w-8 h-8" />
+        </div>
+        <div className="absolute bottom-1/3 left-20 text-purple-500/20 float-animation" style={{animationDelay: '3s'}}>
+          <BookOpen className="w-6 h-6" />
+        </div>
+        <div className="absolute top-1/3 left-1/3 text-green-500/20 float-animation" style={{animationDelay: '5s'}}>
+          <BookOpen className="w-7 h-7" />
+        </div>
+      </div>
+      
+      <div className="relative z-10">
+        <Navbar isAuthenticated={true} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -207,7 +297,9 @@ export default function Notes() {
 
         {/* Notes Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredNotes.map((note, index) => (
+          {filteredNotes.map((note, index) => {
+            const nid = note._id || note.id;
+            return (
             <Card key={note.id} className="campus-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -250,24 +342,44 @@ export default function Notes() {
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center space-x-4">
                     <button 
-                      className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-primary reaction-button"
-                      onClick={() => handleReaction(note.id, "Upvote")}
+                      className={`flex items-center space-x-1 text-sm reaction-button ${
+                        isUserReacted(note.upvotedUserIds, getCurrentUserId()) 
+                          ? 'text-blue-600 font-semibold' 
+                          : 'text-muted-foreground hover:text-primary'
+                      }`}
+                      onClick={() => handleReaction(nid, 'Upvote')}
                     >
-                      <ThumbsUp className="w-4 h-4" />
-                      <span>{note.upvotes}</span>
+                      <ThumbsUp className={`w-4 h-4 ${isUserReacted(note.upvotedUserIds, getCurrentUserId()) ? 'fill-current' : ''}`} />
+                      <span>{note.upvotes || 0}</span>
                     </button>
                     <button 
                       className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-primary reaction-button"
-                      onClick={() => handleReaction(note.id, "Comment")}
+                      onClick={() => toggleComments(nid)}
                     >
                       <MessageCircle className="w-4 h-4" />
-                      <span>{note.comments}</span>
+                      <span>{note.comments || 0}</span>
                     </button>
                     <button 
-                      className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-primary reaction-button"
-                      onClick={() => handleReaction(note.id, "Like")}
+                      className={`flex items-center space-x-1 text-sm reaction-button ${
+                        isUserReacted(note.likedUserIds, getCurrentUserId()) 
+                          ? 'text-red-600 font-semibold' 
+                          : 'text-muted-foreground hover:text-primary'
+                      }`}
+                      onClick={() => handleReaction(nid, 'Like')}
                     >
-                      <Heart className="w-4 h-4" />
+                      <Heart className={`w-4 h-4 ${isUserReacted(note.likedUserIds, getCurrentUserId()) ? 'fill-current' : ''}`} />
+                      <span>{note.likedUserIds?.length || 0}</span>
+                    </button>
+                    <button 
+                      className={`flex items-center space-x-1 text-sm reaction-button ${
+                        isUserReacted(note.starredUserIds, getCurrentUserId()) 
+                          ? 'text-yellow-600 font-semibold' 
+                          : 'text-muted-foreground hover:text-primary'
+                      }`}
+                      onClick={() => handleReaction(nid, 'Star')}
+                    >
+                      <Star className={`w-4 h-4 ${isUserReacted(note.starredUserIds, getCurrentUserId()) ? 'fill-current' : ''}`} />
+                      <span>{note.starredUserIds?.length || 0}</span>
                     </button>
                   </div>
                   
@@ -285,9 +397,74 @@ export default function Notes() {
                     )}
                   </div>
                 </div>
+
+                {/* Comments Section */}
+                {showComments[nid] && (
+                  <div className="mt-4 pt-4 border-t space-y-3">
+                    <h4 className="font-semibold text-sm">Comments</h4>
+                    
+                    {/* Existing Comments */}
+                    {note.commentsArr && note.commentsArr.length > 0 ? (
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {note.commentsArr.map((comment: any, idx: number) => {
+                          const currentUserId = getCurrentUserId();
+                          const isOwner = String(comment.author._id || comment.author) === String(currentUserId);
+                          return (
+                            <div key={comment._id || idx} className="bg-muted/50 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center space-x-2">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarFallback className="text-xs">
+                                      {getInitials(getAuthorName(comment.author))}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-sm font-medium">{getAuthorName(comment.author)}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(comment.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                {isOwner && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteComment(nid, comment._id)}
+                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                              <p className="text-sm select-text">{comment.content}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No comments yet. Be the first to comment!</p>
+                    )}
+
+                    {/* Add Comment */}
+                    <div className="flex space-x-2">
+                      <Input
+                        placeholder="Write a comment..."
+                        value={commentInputs[nid] || ''}
+                        onChange={(e) => setCommentInputs(prev => ({ ...prev, [nid]: e.target.value }))}
+                        className="flex-1"
+                        onKeyPress={(e) => e.key === 'Enter' && handleComment(nid)}
+                      />
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleComment(nid)}
+                        className="campus-button text-white"
+                      >
+                        Post
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
+          );})}
         </div>
 
         {filteredNotes.length === 0 && (
@@ -304,6 +481,7 @@ export default function Notes() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

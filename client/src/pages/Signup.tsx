@@ -69,24 +69,39 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        backgroundImage: `url('/src/assets/campusConnect_bg2.webp')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      {/* Floating Orbs */}
+      <div className="absolute top-10 right-10 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl float-animation"></div>
+      <div className="absolute bottom-10 left-10 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl float-animation" style={{animationDelay: '3s'}}></div>
+      <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl float-animation" style={{animationDelay: '1.5s'}}></div>
+      
+      <div className="w-full max-w-md relative z-10">
+        
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 slide-in-bottom">
           <Link to="/" className="inline-flex items-center space-x-2 group mb-6">
             <div className="w-10 h-10 rounded-lg campus-button flex items-center justify-center">
               <GraduationCap className="h-6 w-6 text-white" />
             </div>
             <span className="font-bold text-2xl hero-text">Campus Connect</span>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Join the community</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Join the community</h1>
           <p className="text-muted-foreground mt-2">
             Create your account and start collaborating with fellow students
           </p>
         </div>
 
         {/* Signup Form */}
-        <Card className="campus-card animate-fade-in">
+        <Card className="campus-card card-3d glass-morphism scale-pop backdrop-blur-xl border-2 border-white/20 shadow-2xl">
           <CardHeader className="text-center pb-4">
             <CardTitle>Create Account</CardTitle>
             <CardDescription>
@@ -244,7 +259,7 @@ export default function Signup() {
 
               <Button 
                 type="submit" 
-                className="w-full campus-button text-white" 
+                className="w-full campus-button text-white pulse-glow hover:scale-105 transition-transform" 
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}

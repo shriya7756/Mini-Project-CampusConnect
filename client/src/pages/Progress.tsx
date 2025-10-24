@@ -21,6 +21,7 @@ import {
   Zap,
   Star,
   Award,
+  BarChart,
 } from "lucide-react";
 
 // Static roadmap (unchanged UI), completion state comes from DB
@@ -193,209 +194,236 @@ export default function Progress() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated={true} />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-14 right-14 w-32 h-32 bg-blue-500/10 rounded-full blur-xl float-animation"></div>
+        <div className="absolute top-1/3 left-14 w-28 h-28 bg-green-500/10 rounded-full blur-lg float-animation" style={{animationDelay: '3s'}}></div>
+        <div className="absolute bottom-20 right-1/5 w-36 h-36 bg-purple-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '5s'}}></div>
+        <div className="absolute top-2/3 right-1/4 w-24 h-24 bg-orange-500/10 rounded-full blur-xl float-animation" style={{animationDelay: '7s'}}></div>
+        <div className="absolute bottom-14 left-1/4 w-40 h-40 bg-pink-500/10 rounded-full blur-2xl float-animation" style={{animationDelay: '9s'}}></div>
+        
+        {/* Floating Progress Icons */}
+        <div className="absolute top-24 left-1/5 text-blue-500/20 float-animation">
+          <TrendingUp className="w-7 h-7" />
+        </div>
+        <div className="absolute bottom-1/4 right-16 text-green-500/20 float-animation" style={{animationDelay: '4s'}}>
+          <Target className="w-6 h-6" />
+        </div>
+        <div className="absolute top-1/2 left-20 text-purple-500/20 float-animation" style={{animationDelay: '6s'}}>
+          <Award className="w-8 h-8" />
+        </div>
+        <div className="absolute top-3/4 right-1/3 text-orange-500/20 float-animation" style={{animationDelay: '8s'}}>
+          <BarChart className="w-7 h-7" />
+        </div>
+      </div>
       
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-            <TrendingUp className="h-8 w-8 text-primary" />
-            Progress Tracker
-          </h1>
-          <p className="text-muted-foreground">
-            Track your learning journey and celebrate your achievements
-          </p>
-        </div>
-
-        {/* Overall Stats */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <Card className="campus-card">
-            <CardContent className="p-4 text-center">
-              <Trophy className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{totalCompleted}</div>
-              <div className="text-sm text-muted-foreground">Topics Completed</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="campus-card">
-            <CardContent className="p-4 text-center">
-              <Target className="w-8 h-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold">{progressPercentage}%</div>
-              <div className="text-sm text-muted-foreground">Current Track</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="campus-card">
-            <CardContent className="p-4 text-center">
-              <Calendar className="w-8 h-8 text-green-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">7</div>
-              <div className="text-sm text-muted-foreground">Day Streak</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="campus-card">
-            <CardContent className="p-4 text-center">
-              <Award className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">3</div>
-              <div className="text-sm text-muted-foreground">Tracks Started</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Learning Tracks */}
-        <Tabs value={activeTrack} onValueChange={async (v) => { setActiveTrack(v); try { await apiPost('/api/progress/track', { track: v }); } catch {} }} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            {Object.entries(learningTracks).map(([key, track]) => {
-              const Icon = getTrackIcon(key);
-              return (
-                <TabsTrigger key={key} value={key} className="flex items-center space-x-2">
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{track.title}</span>
-                  <span className="sm:hidden">{key.toUpperCase()}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-
-          {Object.entries(learningTracks).map(([key, track]) => (
-            <TabsContent key={key} value={key} className="space-y-6">
-              <Card className="campus-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-2xl">{track.title}</CardTitle>
-                      <p className="text-muted-foreground mt-1">{track.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-primary">
-                        {Math.round((totalCompleted / track.totalTopics) * 100)}%
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {totalCompleted} / {track.totalTopics} completed
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{totalCompleted} / {track.totalTopics}</span>
-                    </div>
-                    <div className="progress-bar h-3 rounded-full overflow-hidden">
-                      <ProgressBar value={progressPercentage} className="h-full" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-6">
-                {track.categories.map((category, categoryIndex) => (
-                  <Card key={category.name} className="campus-card animate-fade-in" style={{ animationDelay: `${categoryIndex * 0.1}s` }}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{category.name}</span>
-                        <Badge variant="secondary">
-                          {category.topics.filter(topic => completedTopics[topic.id]).length} / {category.topics.length}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {category.topics.map((topic) => {
-                          const isCompleted = completedTopics[topic.id];
-                          return (
-                            <div 
-                              key={topic.id} 
-                              className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
-                                isCompleted 
-                                  ? 'bg-green-50/50 border-green-200' 
-                                  : 'bg-card hover:bg-muted/50'
-                              }`}
-                            >
-                              <Checkbox
-                                id={`topic-${topic.id}`}
-                                checked={isCompleted}
-                                onCheckedChange={() => handleTopicToggle(topic.id, topic.name)}
-                                className="reaction-button"
-                              />
-                              
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  <label 
-                                    htmlFor={`topic-${topic.id}`}
-                                    className={`font-medium cursor-pointer ${
-                                      isCompleted ? 'line-through text-muted-foreground' : ''
-                                    }`}
-                                  >
-                                    {topic.name}
-                                  </label>
-                                  <div className={`w-2 h-2 rounded-full ${getDifficultyColor(topic.difficulty)}`} />
-                                  <Badge variant="outline" className="text-xs">
-                                    {topic.difficulty}
-                                  </Badge>
-                                </div>
-                              </div>
-                              
-                              {isCompleted && (
-                                <CheckCircle className="w-5 h-5 text-green-500" />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Achievements Section */}
-        <Card className="campus-card mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              <span>Recent Achievements</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className="font-semibold">First Milestone</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Completed your first 10 topics in DSA
-                </p>
-              </div>
-              
-              <div className="p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Zap className="w-5 h-5 text-green-500" />
-                  <span className="font-semibold">Consistency King</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Maintained a 7-day learning streak
-                </p>
-              </div>
-              
-              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Award className="w-5 h-5 text-purple-500" />
-                  <span className="font-semibold">Multi-Track</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Started learning in 3 different tracks
-                </p>
-              </div>
+      <div className="relative z-10">
+        <Navbar isAuthenticated={true} />
+      
+        <main className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+                <TrendingUp className="h-8 w-8 text-primary" />
+                Progress Tracker
+              </h1>
+              <p className="text-muted-foreground">
+                Track your learning journey and celebrate your achievements
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </main>
+          </div>
+
+          {/* Overall Stats */}
+          <div className="grid md:grid-cols-4 gap-4 mb-8">
+            <Card className="campus-card">
+              <CardContent className="p-4 text-center">
+                <Trophy className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">{totalCompleted}</div>
+                <div className="text-sm text-muted-foreground">Topics Completed</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="campus-card">
+              <CardContent className="p-4 text-center">
+                <Target className="w-8 h-8 text-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold">{progressPercentage}%</div>
+                <div className="text-sm text-muted-foreground">Current Track</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="campus-card">
+              <CardContent className="p-4 text-center">
+                <Calendar className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">7</div>
+                <div className="text-sm text-muted-foreground">Day Streak</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="campus-card">
+              <CardContent className="p-4 text-center">
+                <Award className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">3</div>
+                <div className="text-sm text-muted-foreground">Tracks Started</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Learning Tracks */}
+          <Tabs value={activeTrack} onValueChange={async (v) => { setActiveTrack(v); try { await apiPost('/api/progress/track', { track: v }); } catch {} }} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              {Object.entries(learningTracks).map(([key, track]) => {
+                const Icon = getTrackIcon(key);
+                return (
+                  <TabsTrigger key={key} value={key} className="flex items-center space-x-2">
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{track.title}</span>
+                    <span className="sm:hidden">{key.toUpperCase()}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+
+            {Object.entries(learningTracks).map(([key, track]) => (
+              <TabsContent key={key} value={key} className="space-y-6">
+                <Card className="campus-card">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-2xl">{track.title}</CardTitle>
+                        <p className="text-muted-foreground mt-1">{track.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-primary">
+                          {Math.round((totalCompleted / track.totalTopics) * 100)}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {totalCompleted} / {track.totalTopics} completed
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress</span>
+                        <span>{totalCompleted} / {track.totalTopics}</span>
+                      </div>
+                      <div className="progress-bar h-3 rounded-full overflow-hidden">
+                        <ProgressBar value={progressPercentage} className="h-full" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-6">
+                  {track.categories.map((category, categoryIndex) => (
+                    <Card key={category.name} className="campus-card animate-fade-in" style={{ animationDelay: `${categoryIndex * 0.1}s` }}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{category.name}</span>
+                          <Badge variant="secondary">
+                            {category.topics.filter(topic => completedTopics[topic.id]).length} / {category.topics.length}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {category.topics.map((topic) => {
+                            const isCompleted = completedTopics[topic.id];
+                            return (
+                              <div 
+                                key={topic.id} 
+                                className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
+                                  isCompleted 
+                                    ? 'bg-green-50/50 border-green-200' 
+                                    : 'bg-card hover:bg-muted/50'
+                                }`}
+                              >
+                                <Checkbox
+                                  id={`topic-${topic.id}`}
+                                  checked={isCompleted}
+                                  onCheckedChange={() => handleTopicToggle(topic.id, topic.name)}
+                                  className="reaction-button"
+                                />
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <label 
+                                      htmlFor={`topic-${topic.id}`}
+                                      className={`font-medium cursor-pointer ${
+                                        isCompleted ? 'line-through text-muted-foreground' : ''
+                                      }`}
+                                    >
+                                      {topic.name}
+                                    </label>
+                                    <div className={`w-2 h-2 rounded-full ${getDifficultyColor(topic.difficulty)}`} />
+                                    <Badge variant="outline" className="text-xs">
+                                      {topic.difficulty}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                
+                                {isCompleted && (
+                                  <CheckCircle className="w-5 h-5 text-green-500" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {/* Achievements Section */}
+          <Card className="campus-card mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span>Recent Achievements</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <span className="font-semibold">First Milestone</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Completed your first 10 topics in DSA
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Zap className="w-5 h-5 text-green-500" />
+                    <span className="font-semibold">Consistency King</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Maintained a 7-day learning streak
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Award className="w-5 h-5 text-purple-500" />
+                    <span className="font-semibold">Multi-Track</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Started learning in 3 different tracks
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 const express = require('express');
-const { listNotes, createNote } = require('../controllers/notesController');
+const { listNotes, createNote, upvoteNote, likeNote, starNote, addCommentCount, addComment, deleteComment, addView } = require('../controllers/notesController');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -9,6 +9,14 @@ const router = express.Router();
 
 router.get('/', listNotes);
 router.post('/', auth, createNote);
+
+router.post('/:id/upvote', auth, upvoteNote);
+router.post('/:id/like', auth, likeNote);
+router.post('/:id/star', auth, starNote);
+router.post('/:id/comment', auth, addCommentCount);
+router.post('/:id/comments', auth, addComment);
+router.post('/:id/comments/:commentId/delete', auth, deleteComment);
+router.post('/:id/view', addView);
 
 router.post('/upload', auth, upload.single('file'), async (req, res) => {
 	try {

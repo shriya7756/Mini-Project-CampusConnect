@@ -13,6 +13,17 @@ const noteSchema = new mongoose.Schema(
 		upvotes: { type: Number, default: 0 },
 		comments: { type: Number, default: 0 },
 		downloads: { type: Number, default: 0 },
+		views: { type: Number, default: 0 },
+		likedUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		starredUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		upvotedUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+		commentsArr: [
+			{
+				content: { type: String, required: true },
+				author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+				createdAt: { type: Date, default: Date.now },
+			},
+		],
 	},
 	{ timestamps: true }
 );
