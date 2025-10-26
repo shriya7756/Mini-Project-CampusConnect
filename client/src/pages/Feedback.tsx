@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { apiGet, apiPost } from "@/lib/api";
 import { MessageSquare, Bug, Lightbulb, Heart, Send } from "lucide-react";
 
 export default function Feedback() {
@@ -14,9 +15,9 @@ export default function Feedback() {
     category: "",
     subject: "",
     message: "",
-    email: ""
   });
   const [sending, setSending] = useState(false);
+  const [list, setList] = useState<any[]>([]);
   const { toast } = useToast();
 
   const categories = [
@@ -25,6 +26,21 @@ export default function Feedback() {
     { value: "improvement", label: "Improvement", icon: Heart, color: "text-pink-500" },
     { value: "general", label: "General Feedback", icon: MessageSquare, color: "text-blue-500" }
   ];
+
+  // Load existing feedback list
+  const loadList = async () => {
+    try {
+      const d = await apiGet('/api/feedback');
+      setList(Array.isArray(d.feedback) ? d.feedback : []);
+    } catch {
+      setList([]);
+    }
+  };
+
+  // Load feedback on mount
+  useEffect(() => {
+    loadList();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,15 +51,13 @@ export default function Feedback() {
 
     setSending(true);
     try {
-      // Simulate API call - replace with actual endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await apiPost('/api/feedback', form);
       toast({ 
         title: "🎉 Feedback sent!", 
-        description: "Thank you for helping us improve Campus Connect!" 
+        description: "Saved successfully."
       });
-      
-      setForm({ category: "", subject: "", message: "", email: "" });
+      setForm({ category: "", subject: "", message: "" });
+      loadList();
     } catch (e: any) {
       toast({ 
         title: "Failed to send feedback", 
@@ -128,22 +142,6 @@ export default function Feedback() {
                   />
                 </div>
 
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email (optional)</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="glass-morphism border-white/20"
-                    placeholder="your.email@university.edu"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Provide your email if you'd like us to follow up with you
-                  </p>
-                </div>
-
                 {/* Message */}
                 <div className="space-y-2">
                   <Label htmlFor="message">Message *</Label>
@@ -194,19 +192,29 @@ export default function Feedback() {
             </CardContent>
           </Card>
 
-          {/* Additional Info */}
-          <div className="mt-8 text-center">
+          {/* Feedback List */}
+          <div className="mt-8">
             <Card className="campus-card glass-morphism border-white/10">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">Other Ways to Reach Us</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  You can also reach out to us through these channels:
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 text-sm">
-                  <span>📧 support@campusconnect.edu</span>
-                  <span>💬 Discord: CampusConnect</span>
-                  <span>🐦 Twitter: @CampusConnect</span>
-                </div>
+              <CardHeader>
+                <CardTitle>Recent Feedback</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {list.length === 0 ? (
+                  <p className="p-6 text-sm text-muted-foreground">No feedback submitted yet.</p>
+                ) : (
+                  <ul className="divide-y">
+                    {list.map((fb: any) => (
+                      <li key={fb._id} className="p-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="font-medium">{fb.subject}</div>
+                          <span className="text-xs text-muted-foreground">{new Date(fb.createdAt).toLocaleString()}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mb-1">Category: {fb.category}</div>
+                        <p className="text-sm whitespace-pre-wrap">{fb.message}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           </div>

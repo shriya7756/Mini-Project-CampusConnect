@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+ 
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiGet } from "@/lib/api";
-import { Settings as SettingsIcon, Moon, Sun, Lock, Bell, Globe, Palette, Shield } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Lock, Bell, Palette, Shield } from "lucide-react";
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,6 @@ export default function Settings() {
   const [pwd, setPwd] = useState({ currentPassword: "", newPassword: "" });
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [language, setLanguage] = useState('en');
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const tokenHeader = localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {};
@@ -40,7 +39,6 @@ export default function Settings() {
     
     // Load other preferences
     setNotifications(localStorage.getItem('notifications') !== 'false');
-    setLanguage(localStorage.getItem('language') || 'en');
   }, []);
 
   const toggleDarkMode = (enabled: boolean) => {
@@ -113,7 +111,6 @@ export default function Settings() {
 
   const savePreferences = () => {
     localStorage.setItem('notifications', notifications.toString());
-    localStorage.setItem('language', language);
     toast({ title: '⚙️ Preferences saved!', description: 'Your settings have been updated.' });
   };
 
@@ -167,41 +164,21 @@ export default function Settings() {
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-border/30">
-                <div className="space-y-1">
-                  <Label className="flex items-center gap-2">
-                    {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                    Dark Mode
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Switch between light and dark themes
-                  </p>
-                </div>
-                <Switch 
-                  checked={darkMode} 
-                  onCheckedChange={toggleDarkMode}
-                  className="data-[state=checked]:bg-primary"
-                />
-              </div>
-              
-              <div className="space-y-2">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border/30">
+              <div className="space-y-1">
                 <Label className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Language
+                  {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  Dark Mode
                 </Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="de">Deutsch</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Switch between light and dark themes
+                </p>
               </div>
+              <Switch 
+                checked={darkMode} 
+                onCheckedChange={toggleDarkMode}
+                className="data-[state=checked]:bg-primary"
+              />
             </div>
             
             <div className="mt-4">

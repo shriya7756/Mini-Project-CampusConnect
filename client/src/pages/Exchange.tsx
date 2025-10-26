@@ -60,6 +60,15 @@ export default function Exchange() {
   const [viewed, setViewed] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
+  const getCurrentUserId = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user.id;
+    } catch {
+      return null;
+    }
+  };
+
   const getSellerName = (seller: any) => typeof seller === 'string' ? seller : (seller?.name || 'Unknown');
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
 
@@ -329,6 +338,10 @@ export default function Exchange() {
             const itemId = (item as any)._id || item.id;
             const CategoryIcon = getCategoryIcon(item.category);
             const isContactVisible = showContactInfo === itemId;
+            const currentUserId = getCurrentUserId();
+            const isInterested = Array.isArray(item.interestedUserIds) && currentUserId
+              ? item.interestedUserIds.some((u: any) => String(u) === String(currentUserId))
+              : false;
             
             return (
               <Card key={itemId} className="campus-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -445,12 +458,12 @@ export default function Exchange() {
                     </Button>
                     <Button 
                       size="sm" 
-                      variant="outline"
                       onClick={() => handleInterest(itemId)}
-                      className="reaction-button"
+                      className={(isInterested ? 'campus-button text-white ' : 'border ') + 'reaction-button'}
+                      variant={isInterested ? undefined : 'outline'}
                     >
-                      <Heart className="w-3 h-3 mr-1" />
-                      Interested
+                      <Heart className={(isInterested ? 'fill-current ' : '') + 'w-3 h-3 mr-1'} />
+                      {isInterested ? 'Interested' : 'Interested'}
                     </Button>
                   </div>
                 </CardContent>

@@ -17,6 +17,7 @@ export default function Profile() {
   const [user, setUser] = useState<any>(null);
   const [form, setForm] = useState({ name: "", email: "", year: "", major: "" });
   const { toast } = useToast();
+  const [activity, setActivity] = useState<any | null>(null);
 
   useEffect(() => {
     apiGet('/api/users/me').then((d) => {
@@ -28,6 +29,8 @@ export default function Profile() {
         major: d.user.major || '' 
       });
     }).finally(() => setLoading(false));
+    // Load activity
+    apiGet('/api/users/me/activity').then((d) => setActivity(d.activity)).catch(() => setActivity(null));
   }, []);
 
   const save = async () => {
@@ -126,8 +129,8 @@ export default function Profile() {
             </Card>
           </div>
 
-          {/* Edit Form */}
-          <div className="lg:col-span-2">
+          {/* Edit Form + Activity */}
+          <div className="lg:col-span-2 space-y-8">
             <Card className="campus-card card-3d glass-morphism scale-pop backdrop-blur-xl border-2 border-white/20 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -219,6 +222,68 @@ export default function Profile() {
                     {saving ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Activity */}
+            <Card className="campus-card card-3d glass-morphism backdrop-blur-xl border-2 border-white/20 shadow-2xl">
+              <CardHeader>
+                <CardTitle className="text-xl">Your Activity</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {!activity && (
+                  <p className="text-sm text-muted-foreground">No activity found yet.</p>
+                )}
+                {activity && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold mb-2">Liked Notes</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.likedNotes || []).map((n: any) => (
+                          <li key={n._id}>{n.title}</li>
+                        ))}
+                        {(activity.likedNotes || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                      <h3 className="font-semibold mt-4 mb-2">Starred Notes</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.starredNotes || []).map((n: any) => (
+                          <li key={n._id}>{n.title}</li>
+                        ))}
+                        {(activity.starredNotes || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                      <h3 className="font-semibold mt-4 mb-2">Upvoted Notes</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.upvotedNotes || []).map((n: any) => (
+                          <li key={n._id}>{n.title}</li>
+                        ))}
+                        {(activity.upvotedNotes || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2">Interested Exchange Items</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.interestedItems || []).map((it: any) => (
+                          <li key={it._id}>{it.title} {it.price != null ? `- $${it.price}` : ''}</li>
+                        ))}
+                        {(activity.interestedItems || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                      <h3 className="font-semibold mt-4 mb-2">Liked Exchange Items</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.likedItems || []).map((it: any) => (
+                          <li key={it._id}>{it.title}</li>
+                        ))}
+                        {(activity.likedItems || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                      <h3 className="font-semibold mt-4 mb-2">Upvoted Questions</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        {(activity.upvotedQuestions || []).map((q: any) => (
+                          <li key={q._id}>{q.title}</li>
+                        ))}
+                        {(activity.upvotedQuestions || []).length === 0 && <li className="list-none text-muted-foreground">None</li>}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
