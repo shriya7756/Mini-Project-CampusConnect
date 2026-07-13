@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,13 +71,15 @@ export default function Notes() {
       .catch(() => setNotes([]));
   }, []);
 
-  const filteredNotes = notes.filter((note: any) => {
-    const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSubject = selectedSubject === "All Subjects" || note.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
-  });
+  const filteredNotes = useMemo(() => {
+    return notes.filter((note: any) => {
+      const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           note.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           note.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSubject = selectedSubject === "All Subjects" || note.subject === selectedSubject;
+      return matchesSearch && matchesSubject;
+    });
+  }, [notes, searchTerm, selectedSubject]);
 
   const handleUpload = async () => {
     try {

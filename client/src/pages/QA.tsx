@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,13 +57,15 @@ export default function QA() {
     apiGet(`/api/qa/questions${qs.toString() ? `?${qs.toString()}` : ''}`).then((d) => setQuestions(d.questions)).catch(() => setQuestions([]));
   }, [selectedSubject]);
 
-  const filteredQuestions = questions.filter((question: any) => {
-    const matchesSearch = question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSubject = selectedSubject === "All Subjects" || (question.subject || "").toLowerCase() === selectedSubject.toLowerCase();
-    return matchesSearch && matchesSubject;
-  });
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((question: any) => {
+      const matchesSearch = question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           question.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           question.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSubject = selectedSubject === "All Subjects" || (question.subject || "").toLowerCase() === selectedSubject.toLowerCase();
+      return matchesSearch && matchesSubject;
+    });
+  }, [questions, searchTerm, selectedSubject]);
 
   const handleAskQuestion = async () => {
     try {

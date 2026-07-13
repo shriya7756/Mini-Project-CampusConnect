@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note');
-const QA = require('../models/QA');
+const Question = require('../models/Question');
 
 /**
  * GET /api/search?q=query
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 
     const [notes, qas] = await Promise.all([
       Note.find(textQuery, scoreProjection).sort(sortByScore).limit(10),
-      QA.find(textQuery, scoreProjection).sort(sortByScore).limit(10),
+      Question.find(textQuery, scoreProjection).sort(sortByScore).limit(10),
     ]);
 
     res.json({ notes, qas, query: q });

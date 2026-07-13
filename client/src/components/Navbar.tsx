@@ -20,7 +20,9 @@ import {
   GraduationCap,
   Menu,
   X,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const navigation = [
   { name: "Notes", href: "/notes", icon: BookOpen },
@@ -42,6 +44,16 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const user = useMemo(getUser, []);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setMobileMenuOpen(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -87,6 +99,19 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
+            {isAuthenticated && (
+              <form onSubmit={handleSearch} className="hidden md:flex relative group">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search notes, Q&A..."
+                  className="w-[200px] lg:w-[300px] pl-9 bg-muted/50 border-none focus-visible:ring-1 transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </form>
+            )}
+
             {isAuthenticated ? (
               <>
                 {/* Profile Dropdown */}
@@ -169,6 +194,18 @@ export function Navbar({ isAuthenticated = false }: NavbarProps) {
         {/* Mobile Navigation */}
         {isAuthenticated && mobileMenuOpen && (
           <div className="md:hidden py-4 border-t animate-slide-in">
+            <div className="px-4 pb-4">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search notes, Q&A..."
+                  className="w-full pl-9 bg-muted/50 border-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </form>
+            </div>
             <div className="space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;

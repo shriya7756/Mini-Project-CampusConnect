@@ -11,6 +11,7 @@ dotenv.config();
  const progressRoutes = require("./routes/progressRoutes");
  const userRoutes = require("./routes/userRoutes");
   const feedbackRoutes = require("./routes/feedbackRoutes");
+  const searchRoutes = require("./routes/searchRoutes");
 
 const PORT = process.env.PORT || 5000;
 
@@ -30,7 +31,8 @@ async function start() {
    app.use("/api/exchange", exchangeRoutes);
    app.use("/api/progress", progressRoutes);
    app.use("/api/users", userRoutes);
-    app.use("/api/feedback", feedbackRoutes);
+   app.use("/api/feedback", feedbackRoutes);
+   app.use("/api/search", searchRoutes);
 
   app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
